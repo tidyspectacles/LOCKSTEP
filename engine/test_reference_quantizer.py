@@ -63,6 +63,20 @@ class ReferenceQuantizerTests(unittest.TestCase):
         self.assertAlmostEqual(q.note_off("usb-a", 2, 60, 0.250).target_time, 0.275)
         self.assertAlmostEqual(q.note_off("din-1", 1, 60, 0.300).target_time, 0.325)
 
+    def test_chord_grouping_does_not_cross_source_or_channel(self):
+        q = ReferenceQuantizer(0.5, 16, chord_window=0.03)
+        a = q.note_on("usb-a", 1, 60, 100, 0.180)
+        b = q.note_on("usb-b", 1, 64, 100, 0.190)
+        c = q.note_on("usb-a", 2, 67, 100, 0.195)
+        self.assertNotEqual(a.target_time, b.target_time)
+        self.assertNotEqual(a.target_time, c.target_time)
+
+    def test_note_off_velocity_is_preserved(self):
+        q = ReferenceQuantizer(0.5, 16)
+        q.note_on("usb-a", 1, 60, 100, 0.1)
+        off = q.note_off("usb-a", 1, 60, 0.2, velocity=37)
+        self.assertEqual(off.velocity, 37)
+
     def test_note_off_without_note_on_is_rejected(self):
         q = ReferenceQuantizer(0.5, 16)
         with self.assertRaises(ValueError):
