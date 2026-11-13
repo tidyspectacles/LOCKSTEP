@@ -30,7 +30,7 @@ class MidiClockFollowerTests(unittest.TestCase):
         clock = MidiClockFollower(120)
         clock.start(0.0)
         clock.clock_pulse(1 / 48)
-        clock.stop(0.02)
+        clock.stop(0.03)
         self.assertFalse(clock.running)
         self.assertAlmostEqual(clock.beat_at_time(10.0), clock.beat_at_time(0.02))
 
