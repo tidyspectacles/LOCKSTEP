@@ -119,3 +119,14 @@ Open MPC's add-in guide describes a Gen2 Live III case where the loader drop-in 
 ## Decision
 
 LOCKSTEP now has two clearly separated feasibility targets: **A)** transparent internal-pad quantisation (a dedicated MPC Pads port is now documented, but OS-level access and safe interception remain unproven); **B)** external MIDI quantisation into an MPC track (documented input route, processing/reinjection still unproven). The external route is a sensible first implementation target if it proves safe. No source code or binary has been created yet.
+
+## Offline MIDI byte-stream decoder (2026-11-13)
+
+Added `engine/midi_byte_parser.py` and `engine/test_midi_byte_parser.py`. This is a host-side reference component only. It incrementally decodes MIDI 1.0 byte streams across arbitrary read boundaries and recognises channel note messages, velocity-zero note-offs, running status, MIDI Clock, Start/Continue/Stop, Song Position Pointer, and SysEx boundaries. Realtime bytes are handled without interrupting an in-progress message.
+
+The decoder does **not** open a MIDI port, identify the MPC Pads device, provide trustworthy per-byte timestamps, schedule notes, or change any MIDI data. A timestamp attached by a future caller to a whole read chunk would only be a read-boundary timestamp, not the exact time each byte arrived. It must not be mistaken for hardware timestamping.
+
+The reference-engine GitHub Actions workflow runs unittest discovery from the `engine` directory, so the new tests are included on subsequent workflow runs. There are now 48 test methods across the three earlier offline engine suites and the new byte-parser suite. The new commit triggering the workflow is not, by itself, evidence that the workflow passed; verify the Actions run before describing the tests as passing.
+
+This component is deliberately separate from any future ALSA hook. It can be reused only after an observation layer has safely copied bytes from a proven input route.
+
