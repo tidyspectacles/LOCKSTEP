@@ -88,6 +88,20 @@ Note-off target = paired note-on target + original measured note duration. If an
 - No assumption that internal pad events are accessible.
 - No promise that external MIDI can yet be intercepted/reinjected safely.
 
+## First reference implementation (2026-11-13)
+
+A small Python reference model and deterministic unit-test suite have now been added:
+
+- [engine/reference_quantizer.py](../engine/reference_quantizer.py)
+- [engine/test_reference_quantizer.py](../engine/test_reference_quantizer.py)
+- [GitHub Actions test workflow](../.github/workflows/reference-engine-tests.yml)
+
+The reference model currently covers grid spacing and nearest-line snapping, strength, chord grouping within a configurable window, note-on/note-off duration pairing, FIFO handling of repeated same-pitch notes, independent source/channel pairing, velocity preservation (including note-off velocity), and stable output ordering. It treats each source/channel as a separate chord group.
+
+The grid arithmetic and 12 focused behavioural checks were independently exercised during development. The committed unit-test suite has not yet been confirmed by a completed GitHub Actions run.
+
+**Important limits:** this is an offline reference model, not production real-time code. It does not open DIN/USB ports, follow MPC clock or transport, schedule against a live clock, implement the late-event policy, parse raw MIDI byte streams, provide a live bypass, or guarantee queue-overflow recovery. Chord-window behaviour is a first deterministic rule to test, not a final musical decision. These missing pieces must be resolved before connecting to hardware or an MPC.
+
 ## Current status
 
-Specification only. The engine source and tests have not yet been created or run.
+Reference timing model and automated test workflow are now in the repository. No MIDI hardware has been connected, no MPC add-in or live MIDI processor has been built, and nothing has been installed on the MPC.
