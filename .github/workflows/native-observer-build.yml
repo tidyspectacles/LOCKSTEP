@@ -16,13 +16,24 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install -y gcc-aarch64-linux-gnu binutils-aarch64-linux-gnu
-      - name: Build host syntax-check library
+      - name: Build host observer and fake ALSA library
         run: |
+          mkdir -p build/host
           gcc -std=c11 -fPIC -shared -O2 -Wall -Wextra -Werror \
-            -o /tmp/liblockstep-observer-host.so \
+            -o build/host/liblockstep-observer.so \
             native/observer/lockstep_observer.c -ldl -pthread
+          gcc -std=c11 -fPIC -shared -O2 -Wall -Wextra -Werror \
+            -o build/host/libfakealsa.so native/observer/tests/fake_alsa.c
+          gcc -std=c11 -O2 -Wall -Wextra -Werror \
+            -o build/host/passthrough-test native/observer/tests/passthrough_test.c \
+            -Lbuild/host -lfakealsa -Wl,-rpath,'$ORIGIN'
+      - name: Verify pass-through behaviour on host
+        run: |
+          LD_PRELOAD="$PWD/build/host/liblockstep-observer.so" \
+            build/host/passthrough-test
       - name: Build Gen2 ARM64 shared library
         run: |
+          mkdir -p build
           aarch64-linux-gnu-gcc -std=c11 -fPIC -shared -O2 -Wall -Wextra -Werror \
             -Wl,-z,relro,-z,now \
             -o build/liblockstep-observer-gen2-aarch64.so \
