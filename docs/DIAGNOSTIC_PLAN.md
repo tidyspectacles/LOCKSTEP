@@ -2,7 +2,7 @@
 
 **Purpose:** determine whether MPC Live III pad events are visible to an add-in, without changing playback, while separately investigating external MIDI as a practical fallback.
 
-**Current state:** research and design only. No diagnostic source code, MIDI processor, binary or installer has been created. Nothing should be installed on the MPC yet.
+**Current state:** a read-only ALSA RawMIDI observer source prototype and a manual ARM64 build workflow have been added under `native/observer/`. It is not yet an MPC add-in package, has not been built for ARM64 in GitHub Actions, and has not been tested on the MPC. Nothing should be installed on the MPC yet.
 
 **Confirmed target:** Akai MPC Live III running MPC OS 3.10.1 (confirmed by the user on 2026-11-13). Treat this as the baseline for compatibility research; re-check the version before any future device test.
 
@@ -44,7 +44,7 @@ A separate feasibility route is now documented in [EXTERNAL_MIDI_FALLBACK.md](EX
 
 The external route should be investigated independently of the internal-pad route. First identify the physical/USB input handles and prove read-only observation; then test the scheduler offline; only after that investigate controlled processing and reinjection. A Windows-based external MIDI processor remains a possible fallback if an in-MPC add-in cannot safely intercept and re-route the input. Do not choose cables or software until the user's controller and connection options are known.
 
-## ALSA RawMIDI observation detail (2026-11-13)
+## Native RawMIDI observer source prototype (2026-11-13)\n\nAdded `native/observer/lockstep_observer.c`, a narrowly scoped interposer for `snd_rawmidi_open`, `snd_rawmidi_read` and `snd_rawmidi_close`. It calls the next implementation once, preserves the original return values and `errno`, and never writes MIDI or changes the caller's read buffer. It is enabled only when the process executable is exactly `/usr/bin/MPC` and `LOCKSTEP_DIAGNOSTIC_ENABLE=1`.\n\nWith `LOCKSTEP_TARGET_ALSA_NAME` unset, it records RawMIDI open names and modes but captures no MIDI payload. After the actual MPC Pads ALSA name is identified, setting that variable to an exact name enables copying the bytes returned by MPC's own read call for that input handle. The name shown in the MPC UI must not be guessed to be the ALSA name. The worker writes records to `/tmp/lockstep-observer.log`; the bounded queue drops records rather than waiting if it is full, and reports the drop count when the worker exits.\n\nAdded a fake ALSA library and host pass-through smoke test under `native/observer/tests/`. A local x86_64 smoke run confirmed that open/read/close were each forwarded once and that the fake return values, `errno`, and MIDI bytes were preserved. This does not test the enabled logging path, ARM64 ABI compatibility, hook chaining with other add-ins, or MPC runtime behaviour. The manual workflow `.github/workflows/native-observer-build.yml` repeats the host smoke test and cross-compiles a raw Gen2/aarch64 `.so`; it has not yet been run. The artifact is not a package and is not installable by itself.\n\n**Hard limitations:** this only hooks ALSA RawMIDI, not ALSA Sequencer or any Akai-specific path. It is not integrated with the Open MPC loader or installer. It has not been tested with Skipback/MPC Remote; hook ordering may cause conflicts. The fixed `/tmp` log, handle registry, queue behaviour, read-path timing, and shutdown path all need further review and testing. This prototype is evidence-gathering code only, not a quantiser.\n\n## ALSA RawMIDI observation detail (2026-11-13)
 ## Reference add-in implementation inspected (2026-11-13)
 ## Observation is not quantisation (design boundary)
 
@@ -118,7 +118,7 @@ Open MPC's add-in guide describes a Gen2 Live III case where the loader drop-in 
 
 ## Decision
 
-LOCKSTEP now has two clearly separated feasibility targets: **A)** transparent internal-pad quantisation (a dedicated MPC Pads port is now documented, but OS-level access and safe interception remain unproven); **B)** external MIDI quantisation into an MPC track (documented input route, processing/reinjection still unproven). The external route is a sensible first implementation target if it proves safe. No source code or binary has been created yet.
+LOCKSTEP now has two clearly separated feasibility targets: **A)** transparent internal-pad quantisation (a dedicated MPC Pads port is now documented, but OS-level access and safe interception remain unproven); **B)** external MIDI quantisation into an MPC track (documented input route, processing/reinjection still unproven). The external route is a sensible first implementation target if it proves safe. A diagnostic source prototype exists, but no MPC-ready package or hardware-validated binary exists.
 
 ## Offline MIDI byte-stream decoder (2026-11-13)
 
