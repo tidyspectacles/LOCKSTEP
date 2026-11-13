@@ -44,6 +44,14 @@ A separate feasibility route is now documented in [EXTERNAL_MIDI_FALLBACK.md](EX
 
 The external route should be investigated independently of the internal-pad route. First identify the physical/USB input handles and prove read-only observation; then test the scheduler offline; only after that investigate controlled processing and reinjection. A Windows-based external MIDI processor remains a possible fallback if an in-MPC add-in cannot safely intercept and re-route the input. Do not choose cables or software until the user's controller and connection options are known.
 
+## ALSA RawMIDI observation detail (2026-11-13)
+
+The ALSA RawMIDI API opens a named device through `snd_rawmidi_open()`, and the API documentation says a device is opened exclusively for a given direction: another process generally cannot independently open the same input direction while MPC already owns it. This means a separate diagnostic program that simply tries to open MPC Pads may fail with a busy-device error and is not the right first test.
+
+A passive interposer has a more plausible observation point: record the device-name argument passed when MPC itself calls `snd_rawmidi_open()`, then, only for the matching handle, inspect a copy of bytes returned by MPC's own `snd_rawmidi_read()` call while passing the original buffer, arguments, return value and error behaviour through unchanged. The observer must never consume data by opening a competing reader, read ahead, alter bytes, or delay the MPC read. This remains a design hypothesis until the exact Live III port is confirmed to use ALSA RawMIDI and the hook is validated against the device's loader/runtime.
+
+ALSA also documents optional timestamped RawMIDI reads, but this is a capability of the API and must not be assumed to be enabled or used by MPC. A first diagnostic can capture a monotonic timestamp at the read boundary; precision and scheduling impact must be measured.
+
 ## Hook-interaction risk (2026-11-13)
 
 MPC Skipback hooks ALSA raw-MIDI functions including `snd_rawmidi_close`, `snd_rawmidi_open` and `snd_rawmidi_read` to observe controller messages. MPC Remote also hooks `snd_rawmidi_open`, `snd_rawmidi_read` and `poll` for controller-button input. Its catalog entry warns it may not work alongside Skipback because the first add-in to replace a function receives the call; another add-in sees it only if the first forwards the call.
