@@ -45,6 +45,22 @@ A separate feasibility route is now documented in [EXTERNAL_MIDI_FALLBACK.md](EX
 The external route should be investigated independently of the internal-pad route. First identify the physical/USB input handles and prove read-only observation; then test the scheduler offline; only after that investigate controlled processing and reinjection. A Windows-based external MIDI processor remains a possible fallback if an in-MPC add-in cannot safely intercept and re-route the input. Do not choose cables or software until the user's controller and connection options are known.
 
 ## ALSA RawMIDI observation detail (2026-11-13)
+## Reference add-in implementation inspected (2026-11-13)
+
+The public `jacob-sabella/mpc-addin-usb-audio` source is a useful implementation reference for add-in engineering, but it is **not** a MIDI-note interception example. Its README and source show several practices worth carrying into LOCKSTEP:
+
+- Check `/proc/self/exe` and activate only inside the actual `/usr/bin/MPC` process; in every other process, hooks are plain pass-through.
+- Resolve the next implementation with `dlsym(RTLD_NEXT, ...)`, rather than opening a second copy of libasound. The Open MPC add-in guide further warns that hook order matters and that resolving libc's own `dlsym` may need special care if another add-in interposes it.
+- Keep real-time callbacks free of locks, allocations, syscalls and logging; copy bounded data to a preallocated single-producer/single-consumer ring and let a separate worker handle it.
+- Include host-side tests with fake library functions and a fake MPC process before attempting hardware.
+- Treat missing symbols or uncertain device identity as a reason to stay inactive, not to guess.
+
+These are design patterns only. The example hooks ALSA PCM audio functions, not ALSA RawMIDI or Sequencer note events; it does not establish that MPC pad notes are available through either MIDI API. Its device support claims also do not prove compatibility with this specific Live III setup.
+
+**LOCKSTEP-specific additional guard:** even a perfectly transparent read-only hook would still be loaded into the MPC process at startup. The first build should therefore be an offline-tested, disabled-by-default diagnostic library that performs no device writes and captures nothing unless a separate explicit enable flag and an exact, positively identified MPC Pads handle are both present. No install until we have a tested recovery plan and your approval.
+
+Reference source: https://github.com/jacob-sabella/mpc-addin-usb-audio (MIT-licensed reference project).
+
 ## Transport-identification decision tree
 
 Do not hard-code RawMIDI as the only possible implementation. The MPC Pads UI port could be backed by ALSA RawMIDI, an ALSA Sequencer port, or an Akai-specific/internal route. The diagnostic's first job is to identify which API the MPC process actually uses for that named port.
