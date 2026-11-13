@@ -24,15 +24,16 @@ The first task is to investigate the MPC's internal note-event path and the supp
 
 A normal VST2 effect's MIDI output cannot be assumed to feed notes back into the MPC host. The internal-pad interception and safe note reinjection required by LOCKSTEP are therefore an open research question. An experimental native add-in or another supported mechanism may be needed; feasibility must be proven on suitable test equipment before implementation is presented as working.
 
-See the [feasibility research note](docs/FEASIBILITY.md) and the [read-only diagnostic plan](docs/DIAGNOSTIC_PLAN.md) for current findings, safety constraints and the next proof-of-concept steps.
+See the [feasibility research note](docs/FEASIBILITY.md), the [read-only diagnostic plan](docs/DIAGNOSTIC_PLAN.md), and the [external MIDI fallback plan](docs/EXTERNAL_MIDI_FALLBACK.md). The built-in-pad route and external MIDI route are being investigated separately.
 
 ## Initial development milestones
 
 1. **Feasibility research** — identify where internal pad events are generated, how timing and transport are represented, and whether notes can be safely observed and rescheduled.
 2. **Read-only diagnostic** — establish whether pad messages are visible without altering normal playback.
 3. **Minimal prototype** — prove note-on/note-off handling and clock synchronisation without disrupting normal MPC operation.
-4. **Quantise engine** — add grid selection, chord handling, note-length preservation and robust handling of tempo or transport changes.
-5. **Testing and packaging** — test carefully on a separate/test setup before considering any public release.
+4. **Offline quantiser model** — test grid calculations, chord grouping, note-on/note-off pairing and repeated notes independently of MPC hardware. The initial reference model and unit tests are in [engine/](engine/) and are not a live MIDI processor.
+5. **MIDI integration feasibility** — investigate external DIN and USB input paths, then prove safe pass-through and reinjection before any live processing.
+6. **Testing and packaging** — test carefully on a separate/test setup before considering any public release.
 
 ## Safety and compatibility
 
@@ -47,4 +48,4 @@ Research, documentation, testing ideas and technical contributions are welcome. 
 
 ## Project status
 
-This repository is a public work in progress. Features listed above are goals, not claims that they are implemented.
+This repository is a public work in progress. Features listed above are goals, not claims that they are implemented. The current Python reference model is a test aid only; it does not connect to MIDI hardware or the MPC. A GitHub Actions workflow runs its offline unit tests.
