@@ -13,6 +13,12 @@ References:
 - Akai, *Configuring MIDI Ports for Multi-MIDI Control*: https://support.akaipro.com/en/support/solutions/articles/69000804431-akai-pro-mpc-series-configuring-midi-ports-for-multi-midi-control
 - Akai, *Connecting the MPC to External Gear*: https://support.akaipro.com/en/support/solutions/articles/69000868287-akai-pro-mpc%E4%B8%96%E4%BB%A3%EF%BD%9Cmpc%E3%81%A8%E5%A4%96%E9%83%A8%E6%A9%9F%E5%99%A8%E3%81%AE%E6%8E%A5%E7%B6%9A
 
+## Clock synchronisation lead
+
+Akai documents per-output-port **Sync** enablement. With Sync enabled, the selected output sends the sync type configured in MIDI / Sync > Sync Send. The Live III's physical 5-pin MIDI outputs are named **MPC A** and **MPC B**. This creates a documented possibility for an external processor to receive MIDI Clock from the MPC over a DIN connection and use it as its timing reference.
+
+This is only a routing capability documented by Akai. It does not prove that a particular external processor can receive and recover the clock accurately, nor that clock is enabled by default. See [MPC_PAD_PORT_RESEARCH.md](MPC_PAD_PORT_RESEARCH.md) for the source and the offline clock-follower model.
+
 ## Two possible implementation routes
 
 ### Route A — inside the MPC (preferred fallback to investigate)
@@ -50,6 +56,7 @@ No installation or live processing test should happen until source, package, rec
 
 - A normal MIDI track input setting does not itself quantise incoming notes; it only routes them to the track.
 - The ability to read external MIDI does not prove that an add-in can transparently replace it before the MPC track receives it.
+- A documented MIDI Clock output provides a potential timing reference, but the processor still needs a reliable clock input and tested handling of clock jitter, start/stop and tempo changes.
 - ALSA interposition can conflict with other add-ins that hook the same functions. MPC Remote and Skipback already have documented hook overlap. Do not assume they can coexist with LOCKSTEP.
 - A Windows external processor may be possible, but its routing depends on the actual controller and connection setup. Do not prescribe a cable or app before confirming those details.
 - The internal-pad route remains a separate, unproven goal. External-MIDI support would be a useful first release, but must be labelled accurately.
