@@ -11,7 +11,7 @@ class ReferenceQuantizerTests(unittest.TestCase):
             self.assertAlmostEqual(q.grid_spacing, spacing)
 
     def test_nearest_grid_and_half_up_tie(self):
-        q = ReferenceQuantizer(1.0, 16)
+        q = ReferenceQuantizer(0.5, 16)
         self.assertAlmostEqual(q.quantized_time(0.04), 0.0)
         self.assertAlmostEqual(q.quantized_time(0.09), 0.125)
         self.assertAlmostEqual(q.quantized_time(0.0625), 0.125)
