@@ -46,6 +46,7 @@ class MidiClockFollower:
 
     def continue_playback(self, timestamp: float) -> None:
         self._check_time(timestamp)
+        self._require_non_decreasing(timestamp)
         self._running = True
         self._anchor_time = float(timestamp)
         self._last_pulse_time = None
@@ -53,6 +54,7 @@ class MidiClockFollower:
 
     def stop(self, timestamp: float) -> None:
         self._check_time(timestamp)
+        self._require_non_decreasing(timestamp)
         if self._running:
             self._beat = self.beat_at_time(timestamp)
         self._running = False
@@ -61,6 +63,7 @@ class MidiClockFollower:
     def song_position_pointer(self, sixteenth_notes: int, timestamp: float) -> None:
         """Apply MIDI Song Position Pointer; its units are sixteenth notes."""
         self._check_time(timestamp)
+        self._require_non_decreasing(timestamp)
         if not 0 <= sixteenth_notes <= 16383:
             raise ValueError("song position pointer must be 0..16383")
         self._beat = sixteenth_notes / 4.0
@@ -104,6 +107,10 @@ class MidiClockFollower:
         target_beat = grid_index * spacing
         delta_beats = target_beat - beat
         return timestamp + delta_beats * 60.0 / self.bpm
+
+    def _require_non_decreasing(self, timestamp: float) -> None:
+        if timestamp < self._last_event_time:
+            raise ValueError("MIDI Clock timestamps must be non-decreasing")
 
     @staticmethod
     def _check_time(timestamp: float) -> None:
