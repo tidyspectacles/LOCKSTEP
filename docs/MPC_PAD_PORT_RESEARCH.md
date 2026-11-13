@@ -38,6 +38,10 @@ On the Live III, Akai lists physical 5-pin MIDI outputs as **MPC A** and **MPC B
 
 Reference: https://support.akaipro.com/en/support/solutions/articles/69000804431-akai-pro-mpc-series-configuring-midi-ports-for-multi-midi-control
 
+## MIDI Clock follower reference model
+
+An offline [MIDI Clock follower model](../engine/midi_clock_follower.py) and unit tests have also been added. It models the standard 24 clock pulses per quarter note, estimates tempo from recent pulse intervals, tracks Start/Continue/Stop and Song Position Pointer state, and calculates grid targets. It consumes already-decoded messages with timestamps; it is not a raw MIDI parser, does not read the MPC's clock, and has not been connected to hardware. Its simple median-interval estimate is a test baseline, not a finished jitter-resistant clock-recovery algorithm.
+
 ## Revised investigation order
 
 1. First identify the documented **MPC Pads** port in the MPC's MIDI/Sync input-port list. Do not change its Global/Control/Track settings during the first inspection.
