@@ -30,6 +30,14 @@ class ReferenceQuantizerTests(unittest.TestCase):
         b = q.note_on("usb-a", 1, 64, 90, 0.190)
         self.assertAlmostEqual(a.target_time, b.target_time)
 
+
+    def test_chord_window_survives_interleaved_other_source(self):
+        q = ReferenceQuantizer(0.5, 16, chord_window=0.03)
+        first = q.note_on("usb-a", 1, 60, 100, 0.050)
+        q.note_on("usb-b", 1, 70, 100, 0.300)
+        second = q.note_on("usb-a", 1, 64, 100, 0.070)
+        self.assertAlmostEqual(first.target_time, second.target_time)
+
     def test_note_outside_chord_window_starts_new_group(self):
         q = ReferenceQuantizer(0.5, 16, chord_window=0.02)
         a = q.note_on("din-1", 1, 60, 100, 0.110)
