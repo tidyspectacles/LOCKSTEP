@@ -12,9 +12,9 @@ class ReferenceQuantizerTests(unittest.TestCase):
 
     def test_nearest_grid_and_half_up_tie(self):
         q = ReferenceQuantizer(1.0, 16)
-        self.assertAlmostEqual(q.quantized_time(0.11), 0.0)
-        self.assertAlmostEqual(q.quantized_time(0.14), 0.25)
-        self.assertAlmostEqual(q.quantized_time(0.125), 0.25)
+        self.assertAlmostEqual(q.quantized_time(0.04), 0.0)
+        self.assertAlmostEqual(q.quantized_time(0.09), 0.125)
+        self.assertAlmostEqual(q.quantized_time(0.0625), 0.125)
 
     def test_strength_zero_is_bypass_timing(self):
         q = ReferenceQuantizer(0.5, 16, strength=0.0)
@@ -26,14 +26,14 @@ class ReferenceQuantizerTests(unittest.TestCase):
 
     def test_chord_notes_share_target_within_window(self):
         q = ReferenceQuantizer(0.5, 16, chord_window=0.03)
-        a = q.note_on("usb-a", 1, 60, 100, 0.110)
-        b = q.note_on("usb-a", 1, 64, 90, 0.132)
+        a = q.note_on("usb-a", 1, 60, 100, 0.180)
+        b = q.note_on("usb-a", 1, 64, 90, 0.190)
         self.assertAlmostEqual(a.target_time, b.target_time)
 
     def test_note_outside_chord_window_starts_new_group(self):
         q = ReferenceQuantizer(0.5, 16, chord_window=0.02)
         a = q.note_on("din-1", 1, 60, 100, 0.110)
-        b = q.note_on("din-1", 1, 64, 90, 0.150)
+        b = q.note_on("din-1", 1, 64, 90, 0.190)
         self.assertNotEqual(a.target_time, b.target_time)
 
     def test_note_duration_is_preserved(self):
