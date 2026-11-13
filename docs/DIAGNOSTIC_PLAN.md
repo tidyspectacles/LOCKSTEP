@@ -63,3 +63,23 @@ The Skipback example is useful but narrower than LOCKSTEP needs: it hooks the co
 ## Decision
 
 Do not write the actual note-quantising hook until the read-only diagnostic establishes where pad events travel and a safe reinjection path is understood.
+
+
+## Newly identified hook-interaction risk (2026-11-13)
+
+Two existing add-ins now provide relevant evidence and a compatibility warning:
+
+- MPC Skipback hooks ALSA raw-MIDI functions including `snd_rawmidi_close`, `snd_rawmidi_open` and `snd_rawmidi_read` to observe controller messages.
+- MPC Remote also hooks `snd_rawmidi_open`, `snd_rawmidi_read` and `poll` for controller-button input. Its catalog entry explicitly warns that it may not work alongside Skipback because the first add-in to replace a function receives the call; another add-in sees it only if the first forwards the call.
+
+Therefore a LOCKSTEP diagnostic that interposes on the same functions could conflict with either add-in unless its hook chain is designed and tested carefully. For the first device experiment, the safest plan is to avoid having either of those add-ins installed/running, and test only the observer (after a recovery plan and explicit user approval). We must not ask the user to remove existing add-ins without first checking what is installed and explaining the consequences.
+
+The diagnostic's hook should resolve and call the next implementation exactly once, preserve return values and errors, avoid blocking/allocating/logging synchronously on MPC's MIDI read path, and write bounded diagnostic records from a separate worker or similarly safe mechanism. A read-only observer is still executable code inside MPC and can still crash or stall it; "read-only" does not mean risk-free.
+
+## Immediate engineering sequence
+
+1. Inspect current upstream Skipback and MPC Remote hook implementations and document their chaining behavior.
+2. Decide whether a safe, compatible ALSA hook can be written without assuming pad events use the controller port.
+3. Create a minimal source skeleton with no MIDI injection, no event suppression, and a disabled-by-default activation gate.
+4. Add a manually triggered GitHub Actions dry-run build using the upstream reusable Gen2/aarch64 workflow, pinned to a specific upstream commit.
+5. Run host-side tests and package validation. No device installation until the source review, recovery procedure, and user approval are complete.
