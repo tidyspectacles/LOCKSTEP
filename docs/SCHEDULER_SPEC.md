@@ -94,14 +94,18 @@ A small Python reference model and deterministic unit-test suite have now been a
 
 - [engine/reference_quantizer.py](../engine/reference_quantizer.py)
 - [engine/test_reference_quantizer.py](../engine/test_reference_quantizer.py)
+- [engine/clock_timeline.py](../engine/clock_timeline.py)
+- [engine/test_clock_timeline.py](../engine/test_clock_timeline.py)
 - [GitHub Actions test workflow](../.github/workflows/reference-engine-tests.yml)
 
-The reference model currently covers grid spacing and nearest-line snapping, strength, chord grouping within a configurable window, note-on/note-off duration pairing, FIFO handling of repeated same-pitch notes, independent source/channel pairing, velocity preservation (including note-off velocity), and stable output ordering. It treats each source/channel as a separate chord group.
+The reference model covers grid spacing and nearest-line snapping, strength, chord grouping within a configurable window, note-on/note-off duration pairing, FIFO handling of repeated same-pitch notes, independent source/channel pairing, velocity preservation (including note-off velocity), and stable output ordering. Chord windows are tracked independently per source/channel, so activity from another MIDI source does not break a chord being played on the first source.
+
+A separate [tempo timeline model](../engine/clock_timeline.py) now represents piecewise-constant tempo changes while keeping beat position continuous. It also tests two explicit late-event policies: move a late note to the next grid line, or schedule it immediately at the current time. The reference policy never drops an event. This model receives timestamps and tempo changes from its caller; it does not discover or follow MPC tempo, transport, or MIDI Clock.
 
 The grid arithmetic and 12 focused behavioural checks were independently exercised during development. The committed unit-test suite has not yet been confirmed by a completed GitHub Actions run.
 
-**Important limits:** this is an offline reference model, not production real-time code. It does not open DIN/USB ports, follow MPC clock or transport, schedule against a live clock, implement the late-event policy, parse raw MIDI byte streams, provide a live bypass, or guarantee queue-overflow recovery. Chord-window behaviour is a first deterministic rule to test, not a final musical decision. These missing pieces must be resolved before connecting to hardware or an MPC.
+**Important limits:** these are offline reference models, not production real-time code. They do not open DIN/USB ports, discover or follow the MPC clock or transport, schedule against a live operating clock, parse raw MIDI byte streams, provide a live bypass, or guarantee queue-overflow recovery. The late-event policy is modelled but not integrated into a live scheduler. Chord-window behaviour is a first deterministic rule to test, not a final musical decision. These missing pieces must be resolved before connecting to hardware or an MPC.
 
 ## Current status
 
-Reference timing model and automated test workflow are now in the repository. No MIDI hardware has been connected, no MPC add-in or live MIDI processor has been built, and nothing has been installed on the MPC.
+Reference quantiser and tempo-timeline models, their unit tests, and the automated test workflow are now in the repository. No MIDI hardware has been connected, no MPC add-in or live MIDI processor has been built, and nothing has been installed on the MPC.
