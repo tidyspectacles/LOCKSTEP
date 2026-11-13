@@ -46,6 +46,19 @@ The external route should be investigated independently of the internal-pad rout
 
 ## ALSA RawMIDI observation detail (2026-11-13)
 ## Reference add-in implementation inspected (2026-11-13)
+## Observation is not quantisation (design boundary)
+
+A passive hook can tell us whether note data crosses a particular API. It cannot, by itself, implement LOCKSTEP. A working quantiser must also prove all of the following on the same route:
+
+1. **Original-note control:** a reliable point exists to hold or suppress the unquantised note before the target program receives it.
+2. **Correct reinjection:** a corrected note can be delivered to the intended program/track without being mistaken for a new external input, duplicated, looped back, or routed to the wrong selected program.
+3. **Timing:** the scheduler can release note-on and note-off events against the MPC's actual tempo/transport timeline without blocking MPC's MIDI read path or audio thread.
+4. **Failure behaviour:** bypass, stop, project/track changes, overload and add-in shutdown cannot leave notes stuck or lose the original stream.
+
+Do not attempt to quantise by sleeping inside an ALSA read hook or by holding up MPC's reader thread. The diagnostic phase must first identify the data path. A later processing design may require a separate bounded queue and a distinct supported output route; whether such a route exists for internal pads remains unproven.
+
+This is an explicit gate: **seeing pad note bytes is necessary evidence, not proof that transparent internal-pad quantisation is feasible.**
+
 
 The public `jacob-sabella/mpc-addin-usb-audio` source is a useful implementation reference for add-in engineering, but it is **not** a MIDI-note interception example. Its README and source show several practices worth carrying into LOCKSTEP:
 
