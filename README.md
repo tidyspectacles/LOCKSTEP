@@ -4,7 +4,7 @@
 
 LOCKSTEP aims to make live pad playing land on the MPC's musical grid by quantising incoming note events in real time.
 
-> **Status: Early research / experimental.** The key technical challenge—reliably observing and rescheduling notes from the MPC's internal pads while preserving normal instrument playback—has not yet been demonstrated. LOCKSTEP is not currently a working MPC plugin, and no installable build is available.
+> **Status: Experimental prototype.** A read-only ALSA RawMIDI observer source and a manual ARM64 cross-build workflow now exist. The observer has not been tested on an MPC Live III, is not packaged for the MPC add-in loader, and does not quantise notes. The key challenge—reliably observing and rescheduling internal pad notes while preserving normal playback—remains unproven.
 
 ## Project goal
 
@@ -26,7 +26,7 @@ A normal VST2 effect's MIDI output cannot be assumed to feed notes back into the
 
 See the [feasibility research note](docs/FEASIBILITY.md), the [read-only diagnostic plan](docs/DIAGNOSTIC_PLAN.md), the [MPC pad-port research update](docs/MPC_PAD_PORT_RESEARCH.md), and the [external MIDI fallback plan](docs/EXTERNAL_MIDI_FALLBACK.md). The built-in-pad route and external MIDI route are being investigated separately.
 
-## Initial development milestones
+## Native diagnostic prototype\n\nThe first native source is in [native/observer/](native/observer/). It passively interposes ALSA RawMIDI open/read/close calls, stays inactive outside `/usr/bin/MPC`, and requires an explicit enable flag. With no exact target name configured it records opened RawMIDI names only; it captures bytes only after an exact ALSA name is supplied. It never writes or suppresses MIDI. A manual GitHub Actions workflow builds a raw Gen2/aarch64 shared library and runs a host pass-through smoke test. The output is **not an installable MPC package** and must not be copied to the MPC. See the [observer notes](native/observer/README.md).\n\n## Initial development milestones
 
 1. **Feasibility research** — identify where internal pad events are generated, how timing and transport are represented, and whether notes can be safely observed and rescheduled.
 2. **Read-only diagnostic** — establish whether pad messages are visible without altering normal playback.
@@ -39,7 +39,7 @@ See the [feasibility research note](docs/FEASIBILITY.md), the [read-only diagnos
 
 - Target device: Akai MPC Live III (ARM64 / Gen 2).
 - Target software: MPC OS 3.10.1 or later, subject to verification.
-- No installable release is available yet.
+- No installable MPC add-in package is available yet.
 - Experimental system-level extensions can affect device stability. Do not install development builds on a primary production setup.
 
 ## Contributing
@@ -48,4 +48,4 @@ Research, documentation, testing ideas and technical contributions are welcome. 
 
 ## Project status
 
-This repository is a public work in progress. Features listed above are goals, not claims that they are implemented. The current Python reference models cover note timing, a simulated tempo timeline, late-event policies, an offline MIDI Clock follower, an incremental MIDI 1.0 byte-stream decoder, and a parser-to-clock bridge. They are test aids only: they do not connect to MIDI hardware, identify the MPC Pads port, provide hardware-accurate event timestamps, or read the MPC clock. The four offline engine test modules currently define 55 test methods. A GitHub Actions workflow is configured to run them; do not treat the method count or a pushed commit as evidence that the latest workflow passed.
+This repository is a public work in progress. Features listed above are goals, not claims that they are implemented. The current native RawMIDI observer is diagnostic-only source; it is not a quantiser and has not been tested on hardware. The current Python reference models cover note timing, a simulated tempo timeline, late-event policies, an offline MIDI Clock follower, an incremental MIDI 1.0 byte-stream decoder, and a parser-to-clock bridge. They are test aids only: they do not connect to MIDI hardware, identify the MPC Pads port, provide hardware-accurate event timestamps, or read the MPC clock. The four offline engine test modules currently define 55 test methods. A GitHub Actions workflow is configured to run them; do not treat the method count or a pushed commit as evidence that the latest workflow passed.
