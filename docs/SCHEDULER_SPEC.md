@@ -96,11 +96,13 @@ A small Python reference model and deterministic unit-test suite have now been a
 - [engine/test_reference_quantizer.py](../engine/test_reference_quantizer.py)
 - [engine/clock_timeline.py](../engine/clock_timeline.py)
 - [engine/test_clock_timeline.py](../engine/test_clock_timeline.py)
+- [engine/midi_clock_follower.py](../engine/midi_clock_follower.py)
+- [engine/test_midi_clock_follower.py](../engine/test_midi_clock_follower.py)
 - [GitHub Actions test workflow](../.github/workflows/reference-engine-tests.yml)
 
 The reference model covers grid spacing and nearest-line snapping, strength, chord grouping within a configurable window, note-on/note-off duration pairing, FIFO handling of repeated same-pitch notes, independent source/channel pairing, velocity preservation (including note-off velocity), and stable output ordering. Chord windows are tracked independently per source/channel, so activity from another MIDI source does not break a chord being played on the first source.
 
-A separate [tempo timeline model](../engine/clock_timeline.py) now represents piecewise-constant tempo changes while keeping beat position continuous. It also tests two explicit late-event policies: move a late note to the next grid line, or schedule it immediately at the current time. The reference policy never drops an event. This model receives timestamps and tempo changes from its caller; it does not discover or follow MPC tempo, transport, or MIDI Clock.
+A separate [tempo timeline model](../engine/clock_timeline.py) represents piecewise-constant tempo changes while keeping beat position continuous. It tests two explicit late-event policies: move a late note to the next grid line, or schedule it immediately at the current time. A third [MIDI Clock follower model](../engine/midi_clock_follower.py) now models the 24-pulses-per-quarter MIDI Clock stream, tempo estimation, Start/Continue/Stop and Song Position Pointer. All these models receive already-decoded timestamps or tempo changes from their caller; they do not discover or follow the MPC clock themselves. The MIDI Clock model uses a simple median of recent pulse intervals and is not yet a production jitter-rejection algorithm.
 
 The grid arithmetic and 12 focused behavioural checks were independently exercised during development. The committed unit-test suite has not yet been confirmed by a completed GitHub Actions run.
 
@@ -108,4 +110,4 @@ The grid arithmetic and 12 focused behavioural checks were independently exercis
 
 ## Current status
 
-Reference quantiser and tempo-timeline models, their unit tests, and the automated test workflow are now in the repository. No MIDI hardware has been connected, no MPC add-in or live MIDI processor has been built, and nothing has been installed on the MPC.
+Reference quantiser, tempo-timeline and MIDI Clock follower models, their unit tests, and the automated test workflow are now in the repository. No MIDI hardware has been connected, no MPC add-in or live MIDI processor has been built, and nothing has been installed on the MPC.
