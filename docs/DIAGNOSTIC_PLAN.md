@@ -18,10 +18,14 @@
 
 ## Internal-pad investigation
 
+**New research lead (2026-11-13):** Akai's official port documentation lists dedicated **MPC Pads** and **MPC Keyboard** ports on all standalone MPCs. Akai describes these as the ports for controlling the MPC pads and keyboard. Its multi-MIDI guide says the MPC Pads port is an example of a port with Global enabled, meaning its MIDI data always goes to the currently selected program. This is a much more specific target than the controller-button Private port used by Skipback. See [MPC_PAD_PORT_RESEARCH.md](MPC_PAD_PORT_RESEARCH.md).
+
+This still does not prove the pad performance events are ordinary note messages on an ALSA raw-MIDI handle, nor that they can be intercepted/reinjected safely. First identify the OS-level device corresponding to the named MPC Pads port. Do not change its Global/Control/Track settings as an experiment.
+
 The original goal remains transparent quantisation of the MPC's own performance pads. The diagnostic questions are:
 
-1. Which ALSA raw-MIDI input handles does MPC open for its internal controller?
-2. Do pad presses produce data on any of those handles?
+1. Which ALSA raw-MIDI input handle (if any) corresponds to Akai's named MPC Pads port?
+2. Do performance pad presses produce data on that handle, rather than only hardware-button/control messages?
 3. Can we distinguish pad note-on, pad note-off, velocity, channel, repeated hits and simultaneous pads?
 4. Are events timestamped at the input boundary, or can sufficiently accurate monotonic timestamps be captured in the read hook?
 5. Does observing the port leave normal pad playing completely unchanged?
@@ -61,4 +65,4 @@ Open MPC's add-in guide describes a Gen2 Live III case where the loader drop-in 
 
 ## Decision
 
-LOCKSTEP now has two clearly separated feasibility targets: **A)** transparent internal-pad quantisation (harder, unproven); **B)** external MIDI quantisation into an MPC track (documented input route, processing/reinjection still unproven). The external route is a sensible first implementation target if it proves safe. No source code or binary has been created yet.
+LOCKSTEP now has two clearly separated feasibility targets: **A)** transparent internal-pad quantisation (a dedicated MPC Pads port is now documented, but OS-level access and safe interception remain unproven); **B)** external MIDI quantisation into an MPC track (documented input route, processing/reinjection still unproven). The external route is a sensible first implementation target if it proves safe. No source code or binary has been created yet.
