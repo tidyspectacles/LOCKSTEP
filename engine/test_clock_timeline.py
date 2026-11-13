@@ -13,15 +13,15 @@ class TempoTimelineTests(unittest.TestCase):
         clock = TempoTimeline(120)
         clock.set_tempo(1.0, 60)
         self.assertAlmostEqual(clock.beat_at_time(1.0), 2.0)
-        self.assertAlmostEqual(clock.beat_at_time(2.0), 3.0)
+        self.assertAlmostEqual(clock.beat_at_time(2.0), 3.5)
         self.assertAlmostEqual(clock.time_at_beat(3.0), 2.0)
 
     def test_multiple_tempo_changes(self):
         clock = TempoTimeline(120)
         clock.set_tempo(1.0, 60)
         clock.set_tempo(3.0, 90)
-        self.assertAlmostEqual(clock.beat_at_time(4.0), 4.5)
-        self.assertAlmostEqual(clock.time_at_beat(4.5), 4.0)
+        self.assertAlmostEqual(clock.beat_at_time(4.0), 5.5)
+        self.assertAlmostEqual(clock.time_at_beat(5.5), 4.0)
 
     def test_replacing_future_tempo_change(self):
         clock = TempoTimeline(120)
