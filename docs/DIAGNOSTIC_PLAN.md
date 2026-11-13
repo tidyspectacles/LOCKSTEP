@@ -83,3 +83,17 @@ The diagnostic's hook should resolve and call the next implementation exactly on
 3. Create a minimal source skeleton with no MIDI injection, no event suppression, and a disabled-by-default activation gate.
 4. Add a manually triggered GitHub Actions dry-run build using the upstream reusable Gen2/aarch64 workflow, pinned to a specific upstream commit.
 5. Run host-side tests and package validation. No device installation until the source review, recovery procedure, and user approval are complete.
+
+
+## Upstream source review (2026-11-13)
+
+A closer review of the existing MPC Remote and Skipback projects makes the current boundary clearer:
+
+- MPC Remote explicitly lists **pressing pads and Q-Links as not included**. Its documented midi_listen feature collects what MPC sends back to its ALSA sequencer input port; that is not evidence that internal pad hits are exposed there.
+- MPC Remote's documented MIDI output port is for sending notes/messages into MPC after a user enables that port for a track. This is an external MIDI input route, not proof of transparent interception of the built-in pads.
+- Skipback's controller observer is specifically a passive reader of the controller's Private raw-MIDI port. Its documented messages are hardware-button note-ons/releases. It does not establish that performance pads use that same port.
+- Both projects are useful engineering references for add-in loading and bounded background work, but neither supplies the missing pad-event path.
+
+**Implementation decision:** do not create a snd_rawmidi_read observer on the assumption that it will see pads. It might only record hardware-button traffic, producing a misleading diagnostic. Before writing that hook, we need reliable evidence identifying the actual pad event interface on MPC Live III OS 3.10.1, or a safe way to inspect candidate MIDI/ALSA interfaces without changing the running system. The first prototype remains unbuilt.
+
+This is a meaningful narrowing of the hypothesis, not a failure of the project: external MIDI quantisation may still be a separate feasible route, but it does not satisfy the original requirement to quantise built-in pad hits transparently.
