@@ -4,6 +4,8 @@
 
 **Current state:** design only. No diagnostic source code, binary or installer has been created. Nothing should be installed on the MPC yet.
 
+**Confirmed target:** Akai MPC Live III running MPC OS 3.10.1 (confirmed by the user on 2026-11-13). Treat this as the baseline for compatibility research; re-check the version before any future device test.
+
 ## Safety rules
 
 - Read-only observation: no MIDI writes, note suppression, note injection, audio processing, transport control or filesystem changes on the MPC beyond an explicitly selected diagnostic log.
