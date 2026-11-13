@@ -34,6 +34,10 @@ Test matrix: idle baseline; non-performance hardware buttons; single pad at seve
 
 **Go/no-go:** proceed only if pad events are positively identified, release semantics and velocity are understood, simultaneous events are preserved, observation has no side effects, and a credible safe suppression/reinjection path exists. If not, retain built-in-pad support as unproven and focus on external MIDI.
 
+## MPC MIDI Clock output
+
+Akai documents that an MPC output port can have Sync enabled and then send the configured sync type under MIDI / Sync > Sync Send. The Live III's physical 5-pin MIDI outputs are MPC A and MPC B. This offers a possible external clock reference for a Windows-based or standalone processor. It is not assumed to be enabled and must be verified separately; no settings should be changed during the initial read-only pad-port inspection. The offline MIDI Clock follower is a model only, not connected to the MPC.
+
 ## External MIDI fallback
 
 A separate feasibility route is now documented in [EXTERNAL_MIDI_FALLBACK.md](EXTERNAL_MIDI_FALLBACK.md). This is not merely theoretical MIDI routing: Akai documents external DIN and direct USB MIDI input ports on the Live III, and normal tracks can select a MIDI input port and channel. However, normal routing does not quantise notes. LOCKSTEP would still need to prove it can safely process one selected incoming port and feed the corrected stream into a normal MPC track without duplicates or stuck notes.
