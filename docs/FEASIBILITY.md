@@ -26,9 +26,9 @@ Even if the messages are visible, we must still establish whether an add-in can 
 4. **Only then consider interception.** Design a separate prototype with a bypass switch and a reliable pass-through path. Test on a non-critical setup, with a recovery/uninstall route, before attempting any live note rescheduling.
 5. **Prove reinjection.** Determine whether corrected events can reach the intended track/instrument through a supported route without triggering the original event as well.
 
-## Important limitations and safety
+## Current prototype status\n\nThe observer source calls the next RawMIDI open/read/close implementation and returns the original result; it records open names in discovery mode and captures read bytes only when an exact target ALSA name is configured. It is disabled unless both the MPC executable check and explicit enable flag pass. A local host smoke test has checked basic pass-through, but ARM64 compilation, enabled-mode logging, MPC runtime behaviour, and hook coexistence are still unverified. The manual GitHub Actions workflow has not yet been run.\n\n## Important limitations and safety
 
-- No LOCKSTEP code or installable build exists yet.
+- A read-only ALSA RawMIDI observer source prototype and manual ARM64 cross-build workflow now exist under `native/observer/`; they are not an installable MPC package and have not been tested on hardware.
 - No one has demonstrated internal pad-note interception or safe reinjection on the MPC Live III as part of this project.
 - A VST2 MIDI generator or effect must not be assumed to transparently process the MPC's own internal pad events.
 - Add-ins run inside MPC. A faulty hook can crash or prevent MPC from starting. The Gen2 add-in setup also has firmware-specific persistence details; this must be handled by the packaging and recovery plan.
