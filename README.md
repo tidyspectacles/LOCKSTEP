@@ -24,6 +24,8 @@ The first task is to investigate the MPC's internal note-event path and the supp
 
 A normal VST2 effect's MIDI output cannot be assumed to feed notes back into the MPC host. The internal-pad interception and safe note reinjection required by LOCKSTEP are therefore an open research question. An experimental native add-in or another supported mechanism may be needed; feasibility must be proven on suitable test equipment before implementation is presented as working.
 
+See [the feasibility research note](docs/FEASIBILITY.md) for the current findings and the proposed safe proof-of-concept sequence.
+
 ## Initial development milestones
 
 1. **Feasibility research** — identify where internal pad events are generated, how timing and transport are represented, and whether notes can be safely observed and rescheduled.
