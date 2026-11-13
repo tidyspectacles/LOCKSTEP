@@ -47,9 +47,7 @@ class ReferenceQuantizer:
         self.chord_window = float(chord_window)
         self.strength = float(strength)
         self._sequence = 0
-        self._active_chord_start = None
-        self._active_chord_target = None
-        self._active_chord_key = None
+        self._chords: Dict[Tuple[str, int], Tuple[float, float]] = {}
         self._held: Dict[Tuple[str, int, int], Deque[ScheduledEvent]] = defaultdict(deque)
         self._events: List[ScheduledEvent] = []
 
@@ -72,16 +70,13 @@ class ReferenceQuantizer:
         if velocity == 0:
             return self.note_off(source, channel, pitch, event_time, velocity=0)
 
-        if (
-            self._active_chord_start is None
-            or event_time - self._active_chord_start > self.chord_window
-            or self._active_chord_key != (source, channel)
-        ):
-            self._active_chord_start = event_time
-            self._active_chord_target = self.quantized_time(event_time)
-            self._active_chord_key = (source, channel)
+        chord_key = (source, channel)
+        chord = self._chords.get(chord_key)
+        if chord is None or event_time - chord[0] > self.chord_window:
+            chord = (event_time, self.quantized_time(event_time))
+            self._chords[chord_key] = chord
 
-        target = self._active_chord_target
+        target = chord[1]
         self._sequence += 1
         event = ScheduledEvent(
             "note_on", source, channel, pitch, velocity,
