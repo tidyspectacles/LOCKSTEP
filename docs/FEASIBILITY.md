@@ -8,7 +8,7 @@ Last reviewed: 2026-11-13.
 
 1. Open MPC documents a separate add-in mechanism: a shared library loaded into the MPC process with `LD_PRELOAD`. This is distinct from a normal VST2 instrument or effect.
 2. Open MPC's add-in documentation describes hooks around ALSA functions, including `snd_rawmidi_read` and `snd_rawmidi_write`.
-3. The public MPC Skipback add-in provides a concrete example. Its source hooks `snd_rawmidi_open`, `snd_rawmidi_read` and `snd_rawmidi_write`, identifies the controller's ALSA raw-MIDI port by its “Private” name, and observes hardware-button messages while passing the reads through unchanged.
+3. The public MPC Skipback add-in provides a concrete example. Its README describes hooks around the controller's ALSA raw-MIDI port identified by its “Private” name, and observes hardware-button messages while passing normal MPC button presses through. The documented messages are hardware-button note events, not performance-pad events.
 4. Skipback's README reports that its aarch64 build loads on a Gen2 MPC Live III. That is useful evidence that this add-in technique can run on the target hardware, but it is not evidence that pad notes are available through the same port.
 5. Historical MPC controller research describes the internal controller as a USB-connected device with ALSA raw-MIDI ports. This supports investigating the controller MIDI path, but the exact Live III pad-note messages and port routing still need direct verification.
 
@@ -36,7 +36,7 @@ Even if the messages are visible, we must still establish whether an add-in can 
 
 ## Research references
 
-- Open MPC add-in design and installation rules: https://github.com/open-mpc/mpc-vst-plugins/blob/main/docs/ADDINS.md
+- Open MPC add-in design and installation rules (including Gen2 and 3.10.1 persistence notes): https://github.com/open-mpc/mpc-vst-plugins/blob/main/docs/ADDINS.md
 - Open MPC plugin/add-in toolchain: https://github.com/open-mpc/mpc-vst-plugins
 - MPC Skipback add-in (README and source demonstrate raw-MIDI controller-port observation): https://github.com/sd88me/mpc-addin-skipback
 - MPC internal controller MIDI background research: https://github.com/TheKikGen/MPC-LiveXplore-libs
