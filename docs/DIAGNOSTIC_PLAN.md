@@ -45,6 +45,18 @@ A separate feasibility route is now documented in [EXTERNAL_MIDI_FALLBACK.md](EX
 The external route should be investigated independently of the internal-pad route. First identify the physical/USB input handles and prove read-only observation; then test the scheduler offline; only after that investigate controlled processing and reinjection. A Windows-based external MIDI processor remains a possible fallback if an in-MPC add-in cannot safely intercept and re-route the input. Do not choose cables or software until the user's controller and connection options are known.
 
 ## ALSA RawMIDI observation detail (2026-11-13)
+## Transport-identification decision tree
+
+Do not hard-code RawMIDI as the only possible implementation. The MPC Pads UI port could be backed by ALSA RawMIDI, an ALSA Sequencer port, or an Akai-specific/internal route. The diagnostic's first job is to identify which API the MPC process actually uses for that named port.
+
+- **If MPC opens it with ALSA RawMIDI:** record the exact device-name argument and associate the returned handle with the MPC Pads port. Observe only bytes returned by MPC's own read call.
+- **If MPC uses ALSA Sequencer:** investigate the sequencer client/port and receive path instead; a RawMIDI-only interposer would miss it.
+- **If neither is used:** stop and investigate the actual Akai routing layer rather than installing a hook aimed at the wrong API.
+
+The RawMIDI API documentation confirms exclusive opens per direction. It also describes timestamped input reads as an optional facility, not a guarantee that MPC uses them. A second reader is therefore not a valid passive probe, and timestamp support cannot be assumed. Reference: ALSA RawMIDI API documentation.
+
+**Important correction to the prototype plan:** the first implementation should not be a broad hook that logs all MIDI traffic. It should be a narrowly scoped, disabled-by-default observer for the specific MPC Pads handle/port, with a hard cap on captured records and a visible bypass/disable path. If the port cannot be identified unambiguously, it must record nothing.
+
 
 The ALSA RawMIDI API opens a named device through `snd_rawmidi_open()`, and the API documentation says a device is opened exclusively for a given direction: another process generally cannot independently open the same input direction while MPC already owns it. This means a separate diagnostic program that simply tries to open MPC Pads may fail with a busy-device error and is not the right first test.
 
