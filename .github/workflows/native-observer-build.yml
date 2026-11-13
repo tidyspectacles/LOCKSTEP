@@ -1,0 +1,40 @@
+name: Native observer cross-build
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build-gen2-aarch64:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v4
+      - name: Install cross compiler
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y gcc-aarch64-linux-gnu binutils-aarch64-linux-gnu
+      - name: Build host syntax-check library
+        run: |
+          gcc -std=c11 -fPIC -shared -O2 -Wall -Wextra -Werror \
+            -o /tmp/liblockstep-observer-host.so \
+            native/observer/lockstep_observer.c -ldl -pthread
+      - name: Build Gen2 ARM64 shared library
+        run: |
+          aarch64-linux-gnu-gcc -std=c11 -fPIC -shared -O2 -Wall -Wextra -Werror \
+            -Wl,-z,relro,-z,now \
+            -o build/liblockstep-observer-gen2-aarch64.so \
+            native/observer/lockstep_observer.c -ldl -pthread
+      - name: Verify artifact architecture and symbols
+        run: |
+          aarch64-linux-gnu-readelf -h build/liblockstep-observer-gen2-aarch64.so | grep -E 'Class:|Machine:'
+          aarch64-linux-gnu-nm -D build/liblockstep-observer-gen2-aarch64.so | grep -E 'snd_rawmidi_(open|read|close)'
+          sha256sum build/liblockstep-observer-gen2-aarch64.so
+      - name: Upload raw diagnostic library
+        uses: actions/upload-artifact@v4
+        with:
+          name: lockstep-observer-gen2-aarch64-raw-so
+          path: build/liblockstep-observer-gen2-aarch64.so
+          if-no-files-found: error
