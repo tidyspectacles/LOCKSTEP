@@ -24,7 +24,7 @@ The first task is to investigate the MPC's internal note-event path and the supp
 
 A normal VST2 effect's MIDI output cannot be assumed to feed notes back into the MPC host. The internal-pad interception and safe note reinjection required by LOCKSTEP are therefore an open research question. An experimental native add-in or another supported mechanism may be needed; feasibility must be proven on suitable test equipment before implementation is presented as working.
 
-See the [feasibility research note](docs/FEASIBILITY.md), the [read-only diagnostic plan](docs/DIAGNOSTIC_PLAN.md), and the [external MIDI fallback plan](docs/EXTERNAL_MIDI_FALLBACK.md). The built-in-pad route and external MIDI route are being investigated separately.
+See the [feasibility research note](docs/FEASIBILITY.md), the [read-only diagnostic plan](docs/DIAGNOSTIC_PLAN.md), the [MPC pad-port research update](docs/MPC_PAD_PORT_RESEARCH.md), and the [external MIDI fallback plan](docs/EXTERNAL_MIDI_FALLBACK.md). The built-in-pad route and external MIDI route are being investigated separately.
 
 ## Initial development milestones
 
@@ -48,4 +48,4 @@ Research, documentation, testing ideas and technical contributions are welcome. 
 
 ## Project status
 
-This repository is a public work in progress. Features listed above are goals, not claims that they are implemented. The current Python reference models cover note timing plus a simulated tempo timeline and late-event policies. They are test aids only: they do not connect to MIDI hardware or read the MPC clock. A GitHub Actions workflow runs their offline unit tests.
+This repository is a public work in progress. Features listed above are goals, not claims that they are implemented. The current Python reference models cover note timing, a simulated tempo timeline, late-event policies, and an offline MIDI Clock follower. They are test aids only: they do not connect to MIDI hardware or read the MPC clock. A GitHub Actions workflow runs their offline unit tests.
