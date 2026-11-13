@@ -48,4 +48,4 @@ Research, documentation, testing ideas and technical contributions are welcome. 
 
 ## Project status
 
-This repository is a public work in progress. Features listed above are goals, not claims that they are implemented. The current Python reference model is a test aid only; it does not connect to MIDI hardware or the MPC. A GitHub Actions workflow runs its offline unit tests.
+This repository is a public work in progress. Features listed above are goals, not claims that they are implemented. The current Python reference models cover note timing plus a simulated tempo timeline and late-event policies. They are test aids only: they do not connect to MIDI hardware or read the MPC clock. A GitHub Actions workflow runs their offline unit tests.
