@@ -49,6 +49,7 @@ class ReferenceQuantizer:
         self._sequence = 0
         self._active_chord_start = None
         self._active_chord_target = None
+        self._active_chord_key = None
         self._held: Dict[Tuple[str, int, int], Deque[ScheduledEvent]] = defaultdict(deque)
         self._events: List[ScheduledEvent] = []
 
@@ -69,14 +70,16 @@ class ReferenceQuantizer:
     ) -> ScheduledEvent:
         self._validate_note(channel, pitch, velocity)
         if velocity == 0:
-            return self.note_off(source, channel, pitch, event_time)
+            return self.note_off(source, channel, pitch, event_time, velocity=0)
 
         if (
             self._active_chord_start is None
             or event_time - self._active_chord_start > self.chord_window
+            or self._active_chord_key != (source, channel)
         ):
             self._active_chord_start = event_time
             self._active_chord_target = self.quantized_time(event_time)
+            self._active_chord_key = (source, channel)
 
         target = self._active_chord_target
         self._sequence += 1
@@ -89,10 +92,10 @@ class ReferenceQuantizer:
         return event
 
     def note_off(
-        self, source: str, channel: int, pitch: int, event_time: float
+        self, source: str, channel: int, pitch: int, event_time: float, velocity: int = 0
     ) -> ScheduledEvent:
-        if not 1 <= channel <= 16 or not 0 <= pitch <= 127:
-            raise ValueError("invalid MIDI channel or pitch")
+        if not 1 <= channel <= 16 or not 0 <= pitch <= 127 or not 0 <= velocity <= 127:
+            raise ValueError("invalid MIDI channel, pitch, or note-off velocity")
         key = (source, channel, pitch)
         if not self._held[key]:
             raise ValueError("note_off has no matching note_on")
@@ -101,7 +104,7 @@ class ReferenceQuantizer:
         target = paired_on.target_time + duration
         self._sequence += 1
         event = ScheduledEvent(
-            "note_off", source, channel, pitch, 0,
+            "note_off", source, channel, pitch, velocity,
             event_time, target, self._sequence
         )
         self._events.append(event)
