@@ -130,3 +130,15 @@ The reference-engine GitHub Actions workflow runs unittest discovery from the `e
 
 This component is deliberately separate from any future ALSA hook. It can be reused only after an observation layer has safely copied bytes from a proven input route.
 
+## Parser-to-clock integration (2026-11-13)
+
+Added `engine/midi_clock_bridge.py` and `engine/test_midi_clock_bridge.py`. The bridge feeds decoded MIDI Clock, Start, Continue, Stop and Song Position Pointer events into the offline clock follower, while returning note events unchanged to its caller. It is a pure offline integration layer: the caller supplies a timestamp per byte batch. It does not open a MIDI port or provide event-accurate timestamps.
+
+There are now 55 test methods in the four offline engine test modules (16 quantiser, 10 tempo timeline, 9 clock follower, 13 byte parser, 7 clock bridge). These are test methods defined in source, **not a statement that GitHub Actions has passed**. The repository workflow is configured to run `python -m unittest -v` from `engine/`; check the Actions run before calling the suite green.
+
+## Reference add-in source inspection
+
+The public `jacob-sabella/mpc-addin-usb-audio` add-in is useful as a pattern for future host-side engineering: it uses `LD_PRELOAD`, resolves the next ALSA implementation through `dlsym(RTLD_NEXT, ...)`, checks that it is running inside `/usr/bin/MPC`, passes through in other processes, and uses bounded lock-free rings to keep work out of MPC's real-time audio thread. It also has offline host tests with fake libraries and a fake MPC process. This demonstrates a credible testing style for an add-in, but its hooks are ALSA PCM audio hooks—not RawMIDI or Sequencer note hooks—and therefore do not prove the LOCKSTEP MIDI route. See the project's README and source: https://github.com/jacob-sabella/mpc-addin-usb-audio.
+
+The next native-code step should copy the *testing discipline*, not blindly copy the audio hook implementation: create a host-only fake-libasound harness that verifies a proposed RawMIDI interposer calls the next function exactly once, preserves the exact return value and buffer, does not inspect failed/zero-length reads, and stays inert outside a fake MPC process. Only after those tests pass should it be cross-compiled for Gen2/aarch64. Device installation remains a separate approval gate.
+
