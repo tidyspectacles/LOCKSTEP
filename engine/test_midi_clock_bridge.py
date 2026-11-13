@@ -50,7 +50,7 @@ class MidiClockBridgeTests(unittest.TestCase):
         bridge.feed(bytes([0xF2, 0x05]), 0.1)
         events = bridge.feed(bytes([0x01]), 0.2)
         self.assertEqual(events, [])
-        self.assertAlmostEqual(follower.beat_at_time(0.1), 133 / 4)
+        self.assertAlmostEqual(follower.beat_at_time(0.2), 133 / 4)
 
     def test_parser_reset_discards_partial_message(self):
         bridge = MidiClockBridge()
